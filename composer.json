@@ -23,5 +23,6 @@
     "autoload": {
         "psr-0": { "Hip\\I18nRoutingBundle": "" }
     },
+    "target-dir": "Hip/I18nRoutingBundle",
     "minimum-stability": "dev"
 }
