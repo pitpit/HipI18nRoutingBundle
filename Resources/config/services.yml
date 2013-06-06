@@ -4,4 +4,4 @@ parameters:
 services:
     hip_i18n.router:
        class: %hip_i18n.router.class%
-       arguments: [@service_container]
+       arguments: [@service_container, %router.resource%]

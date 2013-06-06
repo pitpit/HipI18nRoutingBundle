@@ -5,6 +5,7 @@ use Symfony\Cmf\Component\Routing\ChainedRouterInterface;
 use Symfony\Cmf\Component\Routing\VersatileGeneratorInterface;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
+use Symfony\Component\Routing\Route;
 
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Generator\ConfigurableRequirementsInterface;
@@ -33,18 +34,32 @@ class I18nRouter implements ChainedRouterInterface
     protected $generator;
 
     /**
+     * @var RouteCollection|null
+     */
+    protected $collection;
+
+    /**
      * @var array
      */
     protected $options = array();
 
-    private $defaultLocale;
+    /**
+     * @var mixed
+     */
+    protected $defaultLocale;
+
+    /**
+     * @var mixed
+     */
+    protected $resource;
 
 
-    public function __construct($container, RequestContext $context = null, array $options = array())
+    public function __construct($container, $resource, RequestContext $context = null, array $options = array())
     {
         $this->setOptions($options);
         $this->context = null === $context ? new RequestContext() : $context;
         $this->container = $container;
+        $this->resource = $resource;
     }
 
 
@@ -69,7 +84,67 @@ class I18nRouter implements ChainedRouterInterface
      */
     public function getRouteCollection()
     {
-        return new RouteCollection();
+        if (null === $this->collection) {
+            $this->collection = $this->container->get('routing.loader')->load($this->resource, $this->options['resource_type']);
+        }
+
+        $i18nCollection = new RouteCollection();
+        foreach ($this->collection->getResources() as $resource) {
+            $i18nCollection->addResource($resource);
+        }
+
+        foreach ($this->collection->all() as $name => $route) {
+            if ($this->shouldExcludeRoute($name, $route)) {
+                $i18nCollection->add($name, $route);
+                continue;
+            }
+
+            foreach ($this->generateI18nPatterns($name, $route) as $pattern => $locales) {
+                // If this pattern is used for more than one locale, we need to keep the original route.
+                // We still add individual routes for each locale afterwards for faster generation.
+                if (count($locales) > 1) {
+                    $catchMultipleRoute = clone $route;
+                    $catchMultipleRoute->setPath($pattern);
+                    $catchMultipleRoute->setDefault('_locales', $locales);
+                    $i18nCollection->add(implode('_', $locales).self::ROUTING_PREFIX.$name, $catchMultipleRoute);
+                }
+
+                foreach ($locales as $locale) {
+                    $localeRoute = clone $route;
+                    $localeRoute->setPath($pattern);
+                    $localeRoute->setDefault('_locale', $locale);
+                    $i18nCollection->add($locale.self::ROUTING_PREFIX.$name, $localeRoute);
+                }
+            }
+        }
+
+        return $i18nCollection;
+    }
+
+    private function shouldExcludeRoute($routeName, Route $route)
+    {
+        if ('_' === $routeName[0]) {
+            return true;
+        }
+
+        if (false === $route->getOption('i18n')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function generateI18nPatterns($routeName, Route $route)
+    {
+        $patterns = array();
+        foreach (array('de','en') as $locale) {
+
+            $i18nPattern = '/'.$locale.$route->getPath();
+
+            $patterns[$i18nPattern][] = $locale;
+        }
+
+        return $patterns;
     }
 	
 	/**
