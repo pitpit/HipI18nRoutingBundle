@@ -94,21 +94,15 @@ class I18nRouter implements ChainedRouterInterface
         }
 
         foreach ($this->collection->all() as $name => $route) {
+
+            //do not add i18n routing prefix
             if ($this->shouldExcludeRoute($name, $route)) {
                 $i18nCollection->add($name, $route);
                 continue;
             }
 
+            //add i18n routing prefix
             foreach ($this->generateI18nPatterns($name, $route) as $pattern => $locales) {
-                // If this pattern is used for more than one locale, we need to keep the original route.
-                // We still add individual routes for each locale afterwards for faster generation.
-                if (count($locales) > 1) {
-                    $catchMultipleRoute = clone $route;
-                    $catchMultipleRoute->setPath($pattern);
-                    $catchMultipleRoute->setDefault('_locales', $locales);
-                    $i18nCollection->add(implode('_', $locales).self::ROUTING_PREFIX.$name, $catchMultipleRoute);
-                }
-
                 foreach ($locales as $locale) {
                     $localeRoute = clone $route;
                     $localeRoute->setPath($pattern);
@@ -137,9 +131,14 @@ class I18nRouter implements ChainedRouterInterface
     private function generateI18nPatterns($routeName, Route $route)
     {
         $patterns = array();
-        foreach (array('de','en') as $locale) {
+        foreach($this->container->getParameter('hip_i18n_routing.locales') as $locale) {
 
-            $i18nPattern = '/'.$locale.$route->getPath();
+            $i18nPattern = $route->getPath();
+
+            //do not add prefix for default locale
+            if($this->container->getParameter('hip_i18n_routing.default_locale') !== $locale) {
+                $i18nPattern = '/'.$locale.$route->getPath();
+            }
 
             $patterns[$i18nPattern][] = $locale;
         }
