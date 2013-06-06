@@ -1,0 +1,28 @@
+{
+    "name": "hip/i18n-routing-bundle",
+    "type": "symfony-bundle",
+    "description": "Symfony HipI18nRoutingBundle",
+    "keywords":     ["translation","multilanguage","routing"],
+    "homepage": "https://github.com/simonchrz/HipI18nRoutingBundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Simon Chrzanowski",
+            "email": "simon@hipaway.com",
+            "homepage": "http://hipaway.com"
+        },
+        {
+            "name": "Github Community",
+            "homepage": "https://github.com/simonchrz/HipI18nRoutingBundle/contributors"
+        }
+    ],
+    "require": {
+        "symfony/framework-bundle": ">=2.1,<2.4-dev",
+        "jms/translation-bundle": ">=1.0,<2.0-dev"
+    },
+    "autoload": {
+        "psr-0": { "Hip\\I18nRoutingBundle": "" }
+    },
+     "target-dir": "Hip/I18nRoutingBundle",
+    "minimum-stability": "dev"
+}
