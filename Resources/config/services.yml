@@ -1,6 +1,6 @@
 parameters:
-	hip_i18n.router.class: Hip\I18nRoutingBundle\Router\I18nRouter
+    hip_i18n.router.class: Hip\I18nRoutingBundle\Router\I18nRouter
 
 services:
-	hip_i18n.router:
-		class: %hip_i18n.router.class%
+    hip_i18n.router:
+       class: %hip_i18n.router.class%
