@@ -17,7 +17,33 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('hip_i18n');
+        $rootNode = $treeBuilder
+            ->root('hip_i18n_routing')
+                ->validate()
+                    ->always()
+                    ->then(function($v) {
+                        if (!in_array($v['default_locale'], $v['locales'], true)) {
+                            $ex = new InvalidConfigurationException('Invalid configuration at path "jms_i18n_routing.default_locale": The default locale must be one of the configured locales.');
+                            $ex->setPath('hip_i18n_routing.default_locale');
+                            throw $ex;
+                        }
+
+                        return $v;
+                    })
+                ->end()
+                ->children()
+                    ->scalarNode('default_locale')->isRequired()->end()
+                        ->arrayNode('locales')
+                            ->beforeNormalization()
+                                ->ifString()
+                                ->then(function($v) { return preg_split('/\s*,\s*/', $v); })
+                            ->end()
+                            ->requiresAtLeastOneElement()
+                            ->prototype('scalar')->end()
+                        ->end()
+                    ->end()
+                ->end()
+        ;
 
         // Here you should define the parameters that are allowed to
         // configure your bundle. See the documentation linked above for

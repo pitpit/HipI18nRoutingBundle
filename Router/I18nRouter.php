@@ -112,7 +112,8 @@ class I18nRouter implements ChainedRouterInterface
             return false;
         }
 
-        $params = array (
+        /*
+        $params = array(
             '_controller' => 'Hip\I18nRoutingBundle\Controller\RedirectController::redirectAction',
             'path' => $pathinfo,
             'permanent' => true,
@@ -121,6 +122,40 @@ class I18nRouter implements ChainedRouterInterface
             'httpsPort' => $this->context->getHttpsPort(),
             '_route' => ''//$params['_route']
         );
+        */
+
+        if (isset($params['_locales'])) {
+            if (false !== $pos = strpos($params['_route'], self::ROUTING_PREFIX)) {
+                $params['_route'] = substr($params['_route'], $pos + strlen(self::ROUTING_PREFIX));
+            }
+
+            if (!($currentLocale = $this->context->getParameter('_locale')) && $this->container->isScopeActive('request')) {
+                $currentLocale = $this->localeResolver->resolveLocale(
+                    $this->container->get('request'), $params['_locales']);
+
+                // If the locale resolver was not able to determine a locale, then all efforts to
+                // make an informed decision have failed. Just display something as a last resort.
+                if (!$currentLocale) {
+                    $currentLocale = reset($params['_locales']);
+                }
+            }
+
+            if (!in_array($currentLocale, $params['_locales'], true)) {
+                return false;
+            }
+
+            unset($params['_locales']);
+            $params['_locale'] = $currentLocale;
+        } else if (isset($params['_locale']) && 0 < $pos = strpos($params['_route'], self::ROUTING_PREFIX)) {
+            $params['_route'] = substr($params['_route'], $pos + strlen(self::ROUTING_PREFIX));
+        }
+
+        // if we have no locale set on the route, we try to set one according to the localeResolver
+        // if we don't do this all _internal routes will have the default locale on first request
+        if (!isset($params['_locale']) && $this->container->isScopeActive('request') && $locale = $this->localeResolver->resolveLocale($this->container->get('request'), $this->container->getParameter('hip_i18n_routing.locales'))) {
+            $params['_locale'] = $locale;
+        }
+
 
         return $params;
     }

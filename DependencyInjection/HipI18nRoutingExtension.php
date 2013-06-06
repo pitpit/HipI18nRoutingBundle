@@ -46,7 +46,15 @@ class HipI18nRoutingExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
+        $container->setParameter('hip_i18n_routing.default_locale', $config['default_locale']);
+        $container->setParameter('hip_i18n_routing.locales', $config['locales']);
+
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
+    }
+
+    public function getAlias()
+    {
+        return 'hip_i18n_routing';
     }
 }
