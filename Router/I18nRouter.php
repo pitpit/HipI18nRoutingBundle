@@ -1,5 +1,5 @@
 <?php
-namespace Hip\I18nRoutingBundle;
+namespace Hip\I18nRoutingBundle\Router;
 
 use Symfony\Cmf\Component\Routing\ChainedRouterInterface;
 use Symfony\Cmf\Component\Routing\VersatileGeneratorInterface;
@@ -35,7 +35,7 @@ class I18nRouter implements ChainedRouterInterface
      */
     public function getRouteCollection()
     {
-        // TODO: Implement getRouteCollection() method.
+        return new RouteCollection();
     }
 	
 	/**
@@ -51,7 +51,17 @@ class I18nRouter implements ChainedRouterInterface
      */
     public function match($pathinfo)
     {
-        // TODO: Implement match() method.
+
+        return array (
+            '_controller' => 'JMS\I18nRoutingBundle\Controller\RedirectController::redirectAction',
+            //'path' => $url,
+            //'host' => $host,
+            'permanent' => true,
+            'scheme' => $this->context->getScheme(),
+            'httpPort' => $this->context->getHttpPort(),
+            'httpsPort' => $this->context->getHttpsPort(),
+            '_route' => ''//$params['_route']
+        );
     }
 	
 	/**
@@ -59,7 +69,7 @@ class I18nRouter implements ChainedRouterInterface
      */
     public function supports($name)
     {
-        // TODO: Implement supports() method.
+        return true;
     }
 
 	/**
@@ -67,6 +77,6 @@ class I18nRouter implements ChainedRouterInterface
      */
     public function getRouteDebugMessage($name, array $parameters = array())
     {
-        // TODO: Implement getRouteDebugMessage() method.
+        return "Route '$name' not found";
     }
 }
