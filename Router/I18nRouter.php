@@ -53,7 +53,7 @@ class I18nRouter implements ChainedRouterInterface
     {
 
         return array (
-            '_controller' => 'JMS\I18nRoutingBundle\Controller\RedirectController::redirectAction',
+            '_controller' => 'Hip\I18nRoutingBundle\Controller\RedirectController::redirectAction',
             //'path' => $url,
             //'host' => $host,
             'permanent' => true,
