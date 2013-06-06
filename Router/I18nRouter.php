@@ -6,12 +6,17 @@ use Symfony\Cmf\Component\Routing\VersatileGeneratorInterface;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
+use Symfony\Component\Routing\Generator\ConfigurableRequirementsInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 use Symfony\Component\Config\ConfigCache;
 
 
 class I18nRouter implements ChainedRouterInterface
 {
+    const ROUTING_PREFIX = '__HIP__';
+
     /**
      * @var RequestContext
      */
@@ -23,9 +28,16 @@ class I18nRouter implements ChainedRouterInterface
     protected $matcher;
 
     /**
+     * @var UrlGeneratorInterface|null
+     */
+    protected $generator;
+
+    /**
      * @var array
      */
     protected $options = array();
+
+    private $defaultLocale;
 
 
     public function __construct($container, RequestContext $context = null, array $options = array())
@@ -65,14 +77,41 @@ class I18nRouter implements ChainedRouterInterface
      */
     public function generate($name, $parameters = array(), $referenceType = self::ABSOLUTE_PATH)
     {
-        // TODO: Implement generate() method.
+        // determine the most suitable locale to use for route generation
+        $currentLocale = $this->context->getParameter('_locale');
+        if (isset($parameters['_locale'])) {
+            $locale = $parameters['_locale'];
+        } else if ($currentLocale) {
+            $locale = $currentLocale;
+        } else {
+            $locale = $this->defaultLocale;
+        }
+
+        $generator = $this->getGenerator();
+        try {
+            $url = $generator->generate($locale.self::ROUTING_PREFIX.$name, $parameters);
+
+            return $url;
+        } catch (RouteNotFoundException $ex) {
+            // fallback to default behavior
+        }
+
+        // use the default behavior if no localized route exists
+        return $generator->generate($name, $parameters);
     }
+
 
 	/**
      * {@inheritdoc}
      */
     public function match($pathinfo)
     {
+        $params = $this->getMatcher()->match($pathinfo);
+
+        if (false === $params) {
+            return false;
+        }
+
         $params = array (
             '_controller' => 'Hip\I18nRoutingBundle\Controller\RedirectController::redirectAction',
             'path' => $pathinfo,
@@ -91,7 +130,7 @@ class I18nRouter implements ChainedRouterInterface
      */
     public function supports($name)
     {
-        return true;
+        return (strpos($name, self::ROUTING_PREFIX) !== false);
     }
 
 	/**
@@ -106,7 +145,44 @@ class I18nRouter implements ChainedRouterInterface
 
 
 
+    /**
+     * Gets the UrlGenerator instance associated with this Router.
+     *
+     * @return UrlGeneratorInterface A UrlGeneratorInterface instance
+     */
+    public function getGenerator()
+    {
+        if (null !== $this->generator) {
+            return $this->generator;
+        }
 
+        if (null === $this->options['cache_dir'] || null === $this->options['generator_cache_class']) {
+            $this->generator = new $this->options['generator_class']($this->getRouteCollection(), $this->context, $this->logger);
+        } else {
+            $class = $this->options['generator_cache_class'];
+            $cache = new ConfigCache($this->options['cache_dir'].'/'.$class.'.php', $this->options['debug']);
+            if (!$cache->isFresh($class)) {
+                $dumper = new $this->options['generator_dumper_class']($this->getRouteCollection());
+
+                $options = array(
+                    'class' => $class,
+                    'base_class' => $this->options['generator_base_class'],
+                );
+
+                $cache->write($dumper->dump($options), $this->getRouteCollection()->getResources());
+            }
+
+            require_once $cache;
+
+            $this->generator = new $class($this->context, $this->logger);
+        }
+
+        if ($this->generator instanceof ConfigurableRequirementsInterface) {
+            $this->generator->setStrictRequirements($this->options['strict_requirements']);
+        }
+
+        return $this->generator;
+    }
 
 
     /**
