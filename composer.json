@@ -1,5 +1,5 @@
 {
-    "name": "hip/i18n-routing-bundle",
+    "name": "hipaway-travel/i18n-routing-bundle",
     "type": "symfony-bundle",
     "description": "Symfony HipI18nRoutingBundle",
     "keywords":     ["translation","multilanguage","routing"],
@@ -23,6 +23,5 @@
     "autoload": {
         "psr-0": { "Hip\\I18nRoutingBundle": "" }
     },
-     "target-dir": "Hip/I18nRoutingBundle",
     "minimum-stability": "dev"
 }
