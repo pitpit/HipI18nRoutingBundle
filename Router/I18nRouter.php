@@ -91,30 +91,34 @@ class I18nRouter implements ChainedRouterInterface
      */
     public function getRouteCollection()
     {
-        if (null === $this->collection) {
-            $this->collection = $this->container->get('routing.loader')->load($this->resource, $this->options['resource_type']);
-        }
+        static $i18nCollection;
 
-        $i18nCollection = new RouteCollection();
-        foreach ($this->collection->getResources() as $resource) {
-            $i18nCollection->addResource($resource);
-        }
-
-        foreach ($this->collection->all() as $name => $route) {
-
-            //do not add i18n routing prefix
-            if ($this->shouldExcludeRoute($name, $route)) {
-                $i18nCollection->add($name, $route);
-                continue;
+        if($i18nCollection instanceof RouteCollection === false) {
+            if (null === $this->collection) {
+                $this->collection = $this->container->get('routing.loader')->load($this->resource, $this->options['resource_type']);
             }
 
-            //add i18n routing prefix
-            foreach ($this->generateI18nPatterns($name, $route) as $pattern => $locales) {
-                foreach ($locales as $locale) {
-                    $localeRoute = clone $route;
-                    $localeRoute->setPath($pattern);
-                    $localeRoute->setDefault('_locale', $locale);
-                    $i18nCollection->add($locale.self::ROUTING_PREFIX.$name, $localeRoute);
+            $i18nCollection = new RouteCollection();
+            foreach ($this->collection->getResources() as $resource) {
+                $i18nCollection->addResource($resource);
+            }
+
+            foreach ($this->collection->all() as $name => $route) {
+
+                //do not add i18n routing prefix
+                if ($this->shouldExcludeRoute($name, $route)) {
+                    $i18nCollection->add($name, $route);
+                    continue;
+                }
+
+                //add i18n routing prefix
+                foreach ($this->generateI18nPatterns($name, $route) as $pattern => $locales) {
+                    foreach ($locales as $locale) {
+                        $localeRoute = clone $route;
+                        $localeRoute->setPath($pattern);
+                        $localeRoute->setDefault('_locale', $locale);
+                        $i18nCollection->add($locale.self::ROUTING_PREFIX.$name, $localeRoute);
+                    }
                 }
             }
         }
