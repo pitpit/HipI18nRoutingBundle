@@ -1,0 +1,8 @@
+parameters:
+    hip_i18n.localelistener.class: Hip\I18nRoutingBundle\Listener\Locale
+
+services:
+    hip_i18n.localelistener:
+       class: %hip_i18n.localelistener.class%
+       tags:
+              - { name: kernel.event_listener, event: kernel.exception, method: onKernelException, priority:-125 }
