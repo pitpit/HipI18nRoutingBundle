@@ -4,5 +4,6 @@ parameters:
 services:
     hip_i18n.localelistener:
        class: %hip_i18n.localelistener.class%
+       arguments: [ %hip_i18n_routing.default_locale%, %hip_i18n_routing.locales% ]
        tags:
               - { name: kernel.event_listener, event: kernel.exception, method: onKernelException, priority:-125 }
