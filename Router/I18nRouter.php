@@ -12,6 +12,7 @@ use Symfony\Component\Routing\Generator\ConfigurableRequirementsInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 use Symfony\Component\Config\ConfigCache;
+use Psr\Log\LoggerInterface;
 
 
 class I18nRouter implements ChainedRouterInterface
@@ -53,13 +54,19 @@ class I18nRouter implements ChainedRouterInterface
      */
     protected $resource;
 
+    /**
+     * @var null|\Psr\Log\LoggerInterface
+     */
+    protected $logger;
 
-    public function __construct($container, $resource, RequestContext $context = null, array $options = array())
+
+    public function __construct($container, $resource, LoggerInterface $logger = null, RequestContext $context = null, array $options = array())
     {
         $this->setOptions($options);
         $this->context = null === $context ? new RequestContext() : $context;
         $this->container = $container;
         $this->resource = $resource;
+        $this->logger = $logger;
     }
 
 
@@ -145,22 +152,26 @@ class I18nRouter implements ChainedRouterInterface
 
         return $patterns;
     }
+
+    private function getLocale()
+    {
+        // determine the most suitable locale to use for route generation
+        $currentLocale = $this->context->getParameter('_locale');
+        if (isset($parameters['_locale'])) {
+            return $parameters['_locale'];
+        } elseif ($currentLocale) {
+            return $currentLocale;
+        } else {
+            return $this->defaultLocale;
+        }
+    }
 	
 	/**
      * {@inheritdoc}
      */
     public function generate($name, $parameters = array(), $referenceType = self::ABSOLUTE_PATH)
     {
-        // determine the most suitable locale to use for route generation
-        $currentLocale = $this->context->getParameter('_locale');
-        if (isset($parameters['_locale'])) {
-            $locale = $parameters['_locale'];
-        } else if ($currentLocale) {
-            $locale = $currentLocale;
-        } else {
-            $locale = $this->defaultLocale;
-        }
-
+        $locale = $this->getLocale();
         $generator = $this->getGenerator();
         try {
             $url = $generator->generate($locale.self::ROUTING_PREFIX.$name, $parameters);
@@ -198,7 +209,7 @@ class I18nRouter implements ChainedRouterInterface
      */
     public function supports($name)
     {
-        return (strpos($name, self::ROUTING_PREFIX) !== false);
+        return (strpos($name, self::ROUTING_PREFIX) !== false || $this->getRouteCollection()->get($this->getLocale().self::ROUTING_PREFIX.$name) !== null);
     }
 
 	/**
