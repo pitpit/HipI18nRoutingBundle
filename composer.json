@@ -3,7 +3,7 @@
     "type": "symfony-bundle",
     "description": "Symfony HipI18nRoutingBundle",
     "keywords":     ["translation","multilanguage","routing"],
-    "homepage": "https://github.com/simonchrz/HipI18nRoutingBundle",
+    "homepage": "https://github.com/Hipaway-Travel/HipI18nRoutingBundle",
     "license": "MIT",
     "authors": [
         {
@@ -13,7 +13,7 @@
         },
         {
             "name": "Github Community",
-            "homepage": "https://github.com/simonchrz/HipI18nRoutingBundle/contributors"
+            "homepage": "https://github.com/Hipaway-Travel/HipI18nRoutingBundle/contributors"
         }
     ],
     "require": {
