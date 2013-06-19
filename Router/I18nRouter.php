@@ -178,7 +178,7 @@ class I18nRouter implements ChainedRouterInterface
         $locale = $this->getLocale();
         $generator = $this->getGenerator();
         try {
-            $url = $generator->generate($locale.self::ROUTING_PREFIX.$name, $parameters);
+            $url = $generator->generate($locale.self::ROUTING_PREFIX.$name, $parameters, $referenceType);
 
             return $url;
         } catch (RouteNotFoundException $ex) {
