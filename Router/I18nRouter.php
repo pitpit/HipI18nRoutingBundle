@@ -160,7 +160,7 @@ class I18nRouter implements ChainedRouterInterface
         return $patterns;
     }
 
-    private function getLocale()
+    private function getLocale($parameters=array())
     {
         // determine the most suitable locale to use for route generation
         $currentLocale = $this->context->getParameter('_locale');
