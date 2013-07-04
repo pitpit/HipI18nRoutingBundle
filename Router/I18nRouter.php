@@ -148,7 +148,10 @@ class I18nRouter implements ChainedRouterInterface
 
             //do not add prefix for default locale
             if($this->container->getParameter('hip_i18n_routing.default_locale') !== $locale) {
-                $i18nPattern = '/'.$locale.$route->getPath();
+                $i18nPattern = '/'.$locale;
+                if($route->getPath() != '/') {
+                    $i18nPattern .= $route->getPath();
+                }
             }
 
             $patterns[$i18nPattern][] = $locale;
