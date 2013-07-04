@@ -178,7 +178,7 @@ class I18nRouter implements ChainedRouterInterface
      */
     public function generate($name, $parameters = array(), $referenceType = self::ABSOLUTE_PATH)
     {
-        $locale = $this->getLocale();
+        $locale = $this->getLocale($parameters);
         $generator = $this->getGenerator();
         try {
             $url = $generator->generate($locale.self::ROUTING_PREFIX.$name, $parameters, $referenceType);
